@@ -26,9 +26,11 @@ bool compare_clients(socket_info si1,socket_info si2){
 bool compare_blocks(block b1,block b2){
   return b1.listen_port_num < b2.listen_port_num;
 }
-
+char msg [1024];
+char buf [1024];
+int newfd;
 //LIST OF LOGGED IN CLIENTS
-void List_clients()
+void server::List_clients()
   {
         /* Standard input */
           
@@ -45,7 +47,7 @@ void List_clients()
   }
 
 //ITERATE OVER THE STATISTICS
-  void iter_statistics()
+  void server::iter_statistics()
   {
        cse4589_print_and_log("[STATISTICS:SUCCESS]\n");
        int i = 0;
@@ -56,7 +58,7 @@ void List_clients()
   }
 
 //LIST OF BLOCKED CLIENTS
-  void iter_blocked_list()
+  void server::iter_blocked_list()
   {
       bool valid = false;
             char *arg[2];
@@ -78,7 +80,7 @@ void List_clients()
   }
 
 // LIST OF CLIENT INFO
-  void get_send_list_info()
+  void server::get_send_list_info(char* received_ip)
   {
 
       /* Get list information, including hostname, ip, port number. */
@@ -132,7 +134,7 @@ void List_clients()
 
 
 //to remove a client from blocked list
-  void unblock_client()
+  void server::unblock_client(int i)
   {
         char *arg[2];
         arg[1] = strtok(NULL," ");
@@ -147,7 +149,7 @@ void List_clients()
   }
 
  // to add a client to a blocked list
-  void block_client(){
+  void server::block_client(int i){
         char *arg[2];
               arg[1] = strtok(NULL," ");
               for(list<socket_info>::iterator iter = information.clients.begin();iter != information.clients.end();++iter){
@@ -166,7 +168,7 @@ void List_clients()
   }
 
 
-  void send_brodcast(){
+  void server::send_broadcast(int i){
        cse4589_print_and_log("[%s:SUCCESS]\n", "RELAYED");
               char from_client_ip[32];
               bzero(&from_client_ip,sizeof(from_client_ip));
@@ -210,7 +212,7 @@ void List_clients()
 
   }
 
-  void refresh()
+  void server::refresh()
   {
       char list_message[4096];
               bzero(&list_message,sizeof(list_message));
@@ -232,7 +234,7 @@ void List_clients()
 
   }
 
-  void send_message()
+  void server::send_message(int i)
   {
      char from_client_ip[32];
               bzero(&from_client_ip,sizeof(from_client_ip));
@@ -363,9 +365,9 @@ server::server(char* port){
   /* Main loop */
   int fdmax = information.listener;
   int addrlen;
-  int newfd;   //DEFINE IN GLOBAL
+ // int newfd;   //DEFINE IN GLOBAL
   int nbytes;
-  char buf[1024];
+  
   struct sockaddr_in remoteaddr;
   //for(;;){
   while(true){
@@ -378,9 +380,9 @@ server::server(char* port){
     for(int i = 0; i <= fdmax; i++) {
       memset((void *)&buf,'\0',sizeof(buf));
       if (FD_ISSET(i, &read_fds)) {
-        if (i == STD_IN){
+        if (i == STDIN){
           /* Standard input */
-          read(STD_IN,buf,1024);
+          read(STDIN,buf,1024);
           buf[strlen(buf)-1]='\0';
           if (strcmp(buf,"AUTHOR")==0){
             print_author();
@@ -397,7 +399,7 @@ server::server(char* port){
           }
           if (strncmp(buf,"BLOCKED",7)==0){
          
-                iter_blocked();
+                iter_blocked_list();
           }          
           if (strcmp(buf,"STATISTICS")==0){
                         iter_statistics();
@@ -465,7 +467,7 @@ server::server(char* port){
             }
             /* Get list information, including hostname, ip, port number. */
             /* Logged in and send list message and buffer message */
-              get_send_list_info();
+              get_send_list_info(received_ip);
           }
         } 
         else {
@@ -529,19 +531,19 @@ server::server(char* port){
             //   break;
             // }
             if(strcmp(arg_zero,"SEND") == 0){
-             send_message();
+             send_message(i) ;
             }
             else if(strcmp(arg_zero,"REFRESH") == 0){  
             refresh();
             }
             else if(strcmp(arg_zero,"BROADCAST") == 0){
-              send_broadcast(); 
+              send_broadcast(i); 
             }
             else if(strcmp(arg_zero,"BLOCK") == 0){
-            block_client();
+            block_client(i);
             }
             else if(strcmp(arg_zero,"UNBLOCK") == 0){
-            unblock_client();
+            unblock_client(i);
             }
           }
         }
