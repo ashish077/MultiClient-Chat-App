@@ -18,7 +18,7 @@
 
 #define STDIN 0
 using namespace std;
-namespace s = server;
+
 bool compare_clients(socket_info si1,socket_info si2){
   return si1.port_num < si2.port_num;
 }
@@ -30,7 +30,7 @@ char msg [1024];
 char buf [1024];
 int newfd;
 //LIST OF LOGGED IN CLIENTS
-void s::List_clients()
+void server::List_clients()
   {
         /* Standard input */
           
@@ -47,7 +47,7 @@ void s::List_clients()
   }
 
 //ITERATE OVER THE STATISTICS
-  void s::iter_statistics()
+  void server::iter_statistics()
   {
        cse4589_print_and_log("[STATISTICS:SUCCESS]\n");
        int i = 0;
@@ -58,7 +58,7 @@ void s::List_clients()
   }
 
 //LIST OF BLOCKED CLIENTS
-  void s::iter_blocked_list()
+  void server::iter_blocked_list()
   {
       bool valid = false;
             char *arg[2];
@@ -80,7 +80,7 @@ void s::List_clients()
   }
 
 // LIST OF CLIENT INFO
-  void s::get_send_list_info(char* received_ip)
+  void server::get_send_list_info(char* received_ip)
   {
 
       /* Get list information, including hostname, ip, port number. */
@@ -134,7 +134,7 @@ void s::List_clients()
 
 
 //to remove a client from blocked list
-  void s::unblock_client(int i)
+  void server::unblock_client(int i)
   {
         char *arg[2];
         arg[1] = strtok(NULL," ");
@@ -149,7 +149,7 @@ void s::List_clients()
   }
 
  // to add a client to a blocked list
-  void s::block_client(int i){
+  void server::block_client(int i){
         char *arg[2];
               arg[1] = strtok(NULL," ");
               for(list<socket_info>::iterator iter = information.clients.begin();iter != information.clients.end();++iter){
@@ -168,7 +168,7 @@ void s::List_clients()
   }
 
 
-  void s::send_broadcast(int i){
+  void server::send_broadcast(int i){
        cse4589_print_and_log("[%s:SUCCESS]\n", "RELAYED");
               char from_client_ip[32];
               bzero(&from_client_ip,sizeof(from_client_ip));
@@ -212,7 +212,7 @@ void s::List_clients()
 
   }
 
-  void s::refresh()
+  void server::refresh()
   {
       char list_message[4096];
               bzero(&list_message,sizeof(list_message));
@@ -234,7 +234,7 @@ void s::List_clients()
 
   }
 
-  void s::send_message(int i)
+  void server::send_message(int i)
   {
      char from_client_ip[32];
               bzero(&from_client_ip,sizeof(from_client_ip));
@@ -311,7 +311,7 @@ void s::List_clients()
 
 
 
-s::server(char* port){
+server::server(char* port){
   /* Save port number */
   strcpy(information.port_number,port);
 
@@ -552,7 +552,7 @@ s::server(char* port){
   }
  }
 
-bool s::isvalid(char *server_ip){
+bool server::isvalid(char *server_ip){
   for(list<socket_info>::iterator iter = information.clients.begin();iter != information.clients.end();++iter){
     if(strcmp(server_ip,iter->ip_addr) == 0)
       return true;
