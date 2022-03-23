@@ -12,14 +12,14 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define STD_IN 0
+#define STDIN 0
 using namespace std;
-
-bool cmp_client(socket_info si1,socket_info si2){
+namespace c = client;
+bool compare_client(socket_info si1,socket_info si2){
   return si1.port_num < si2.port_num;
 }
 
-client::client(char *port){
+c::client(char *port){
   /* Save port number */
   strcpy(information.port_number,port);
 
@@ -60,7 +60,7 @@ client::client(char *port){
   char buf[1024];
   for(;;){
     bzero(&buf,sizeof(buf));
-    read(STD_IN,buf,1024);
+    read(STDIN,buf,1024);
     buf[strlen(buf)-1]='\0';
     if (strcmp(buf,"EXIT") == 0){
       cse4589_print_and_log("[EXIT:SUCCESS]\n");
@@ -79,7 +79,7 @@ client::client(char *port){
     else if (strcmp(buf,"LIST") == 0){
       cse4589_print_and_log("[LIST:SUCCESS]\n");
       int i = 0;
-      information.clients.sort(cmp_client);
+      information.clients.sort(compare_client);
       for(list<socket_info>::iterator iter = information.clients.begin();iter != information.clients.end();++iter){
         if (strcmp(iter->status,"logged-in") == 0)
            cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++i,iter->hostname,iter->ip_addr,iter->port_num);
@@ -163,13 +163,13 @@ client::client(char *port){
             bzero(&buf,sizeof(buf));
             fd_set read_fds;
             FD_ZERO(&read_fds);
-            FD_SET(STD_IN,&read_fds);
+            FD_SET(STDIN,&read_fds);
             FD_SET(information.listener,&read_fds);
 
             int fd_max = information.listener;
             select(fd_max+1, &read_fds, NULL, NULL, NULL);
-            if (FD_ISSET(STD_IN, &read_fds)){
-              read(STD_IN,buf,1024);
+            if (FD_ISSET(STDIN, &read_fds)){
+              read(STDIN,buf,1024);
               buf[strlen(buf)-1]='\0';
 
               if (strcmp(buf,"AUTHOR") == 0){
@@ -184,7 +184,7 @@ client::client(char *port){
               else if (strcmp(buf,"LIST") == 0){
                   cse4589_print_and_log("[LIST:SUCCESS]\n");
                   int i = 0;
-                  information.clients.sort(cmp_client);
+                  information.clients.sort(compare_client);
                   for(list<socket_info>::iterator iter = information.clients.begin();iter != information.clients.end();++iter){
                     if (strcmp(iter->status,"logged-in") == 0)
                       cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++i,iter->hostname,iter->ip_addr,iter->port_num);
