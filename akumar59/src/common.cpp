@@ -13,7 +13,7 @@ void common::print_error(const char* command_str){
 }
 void common::print_author(){
   cse4589_print_and_log("[AUTHOR:SUCCESS]\n");
-  cse4589_print_and_log("I, haoweizh, have read and understood the course academic integrity policy.\n");
+  cse4589_print_and_log("I, akumar59, have read and understood the course academic integrity policy.\n");
   cse4589_print_and_log("[AUTHOR:END]\n");
 }
 void common::print_ip(){
