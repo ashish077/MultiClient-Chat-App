@@ -14,12 +14,12 @@
 
 #define STDIN 0
 using namespace std;
-namespace c = client;
+
 bool compare_client(socket_info si1,socket_info si2){
   return si1.port_num < si2.port_num;
 }
 
-c::client(char *port){
+client::client(char *port){
   /* Save port number */
   strcpy(information.port_number,port);
 
