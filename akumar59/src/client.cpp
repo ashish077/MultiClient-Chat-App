@@ -1,6 +1,6 @@
 #include "../include/client.h"
 #include "../include/logger.h"
-#include "../include/common.h"
+//#include "../include/common.h"
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -31,6 +31,18 @@ void displayError(const char* errorCommand){
   cse4589_print_and_log("[%s:END]\n",errorCommand);
 }
 
+void displayIP(){
+  cse4589_print_and_log("[IP:SUCCESS]\n");
+  cse4589_print_and_log("IP:%s\n",information.ip_address);
+  cse4589_print_and_log("[IP:END]\n");
+}
+
+void displayPort(){
+  cse4589_print_and_log("[PORT:SUCCESS]\n");
+  cse4589_print_and_log("PORT:%s\n",information.port_number);
+  cse4589_print_and_log("[PORT:END]\n");
+}
+
 void client::List_clients(){
   cse4589_print_and_log("[LIST:SUCCESS]\n");
       int cnt = 1;
@@ -44,7 +56,7 @@ void client::List_clients(){
       cse4589_print_and_log("[LIST:END]\n");
 }
 
-void client::refresh(char buf[]){
+void client::refresh(char *buf){
   strcat(buf," ");
   strcat(buf,host_info.ip_address);
   if(send(host_info.listener,buf,strlen(buf),0)<0){
@@ -54,7 +66,7 @@ void client::refresh(char buf[]){
   cse4589_print_and_log("[REFRESH:END]\n");
 }
 
-bool client::send_message(char buf[]){
+bool client::send_message(char *buf){
 
   char send_message[1024],*arg[3];;
   memset(&send_message,0,sizeof(send_message));
@@ -135,10 +147,10 @@ client::client(char *port){
       cse4589_print_and_log("[AUTHOR:END]\n");
     }
     else if (strcmp(buf,"PORT") == 0){
-      print_port();
+      displayPort();
     }
     else if (strcmp(buf,"IP") == 0){
-      print_ip();
+      displayIP();
     }
     else if (strcmp(buf,"LIST") == 0){
       List_clients();
@@ -232,10 +244,10 @@ client::client(char *port){
                 cse4589_print_and_log("[AUTHOR:END]\n");
               }
               else if (strcmp(buf,"PORT") == 0){
-                print_port();
+                displayPort();
               }
               else if (strcmp(buf,"IP") == 0){
-                print_ip();
+                displayIP();
               }
               else if (strcmp(buf,"LIST") == 0){
                   List_clients();
