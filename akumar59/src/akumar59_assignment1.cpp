@@ -1,6 +1,6 @@
 /**
- * @akumar59_assignment1
- * @author  Ashish Kumar <akumar59@buffalo.edu>
+ * @haoweizh_assignment1
+ * @author  Haowei Zhou <haoweizh@buffalo.edu>
  * @version 1.0
  *
  * @section LICENSE
@@ -22,9 +22,12 @@
  */
 #include <iostream>
 #include <stdio.h>
+#include <string.h>
 
 #include "../include/global.h"
 #include "../include/logger.h"
+#include "../include/server.h"
+#include "../include/client.h"
 
 using namespace std;
 
@@ -37,13 +40,21 @@ using namespace std;
  */
 int main(int argc, char **argv)
 {
-	/*Init. Logger*/
-	cse4589_init_log(argv[2]);
+  /* The number of argument should more than 2. */
+  if (argc <= 2)
+    return 0;
 
-	/* Clear LOGFILE*/
-    fclose(fopen(LOGFILE, "w"));
+  /*Init. Logger*/
+  cse4589_init_log(argv[2]);
 
-	/*Start Here*/
-	
-	return 0;
+  /* Clear LOGFILE*/
+  fclose(fopen(LOGFILE, "w"));
+
+  /*Start Here*/
+  if (strcmp(argv[1],(char*)"c") == 0)
+    client clt(argv[2]);
+  if (strcmp(argv[1],(char*)"s") == 0)
+    server sev(argv[2]);
+  
+  return 0;
 }
