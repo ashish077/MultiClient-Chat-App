@@ -1,6 +1,5 @@
 #include "../include/client.h"
 #include "../include/logger.h"
-//#include "../include/common.h"
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -37,17 +36,6 @@ void client::List_clients(){
         iter++;
       }
       cse4589_print_and_log("[LIST:END]\n");
-}
-
-void refresh(char *buf){
-  strcat(buf," ");
-  strcat(buf,host_info.ip_address);
-  if(send(host_info.listener,buf,strlen(buf),0)<0){
-    cse4589_print_and_log("[%s:ERROR]\n","REFRESH");
-    cse4589_print_and_log("[%s:END]\n","REFRESH");
-  }
-  cse4589_print_and_log("[REFRESH:SUCCESS]\n");
-  cse4589_print_and_log("[REFRESH:END]\n");
 }
 
 bool send_message(char *buf){
@@ -252,12 +240,36 @@ client::client(char *port){
                   List_clients();
               }
               else if(strcmp(buf,"REFRESH") == 0){
-                refresh(buf);
+                strcat(buf," ");
+                strcat(buf,host_info.ip_address);
+                if(send(host_info.listener,buf,strlen(buf),0)<0){
+                  cse4589_print_and_log("[%s:ERROR]\n","REFRESH");
+                  cse4589_print_and_log("[%s:END]\n","REFRESH");
+                }
+                cse4589_print_and_log("[REFRESH:SUCCESS]\n");
+                cse4589_print_and_log("[REFRESH:END]\n");
               }
               else if(strncmp(buf,"SEND",4) == 0){
                 
-                bool send_error = send_message(buf);
-                if(send_error){
+                char send_message[1024],*arg[3];;
+                memset(&send_message,0,sizeof(send_message));
+                strcpy(send_message,buf);
+                
+                arg[0] = strtok(buf," ");
+                int idx = 1;
+                while(idx != 3){
+                  arg[idx] = strtok(NULL," ");
+                  idx++;
+                }
+                /* Whether in current list */
+                bool isval = false;
+                list<socket_info>::iterator iter = host_info.clients.begin();
+                while(iter != host_info.clients.end()){
+                  if(strcmp(iter->ip_addr,arg[1]) == 0) 
+                    isval = true;
+                  iter++;
+                }
+                if(!isval || send(host_info.listener,send_message,strlen(send_message),0)<0){
                   cse4589_print_and_log("[%s:ERROR]\n","SEND");
                   cse4589_print_and_log("[%s:END]\n","SEND");
                   continue;
