@@ -1,6 +1,6 @@
 #include "../include/client.h"
 #include "../include/logger.h"
-#include "../include/global.h"
+#include "../include/common.h"
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -12,15 +12,20 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define STD_IN 0
+#define STDIN 0
 using namespace std;
-
-// bool cmp_client(socket_info si1,socket_info si2){
-//   return si1.port_num < si2.port_num;
-// }
 
 bool compare_client(socket_info s1,socket_info s2){
   return s1.port_num < s2.port_num;
+}
+
+bool isvalid(char *server_ip,int p){
+  struct sockaddr_in ip4addr;
+  ip4addr.sin_family = AF_INET;
+  ip4addr.sin_port = htons(p);
+  if(inet_pton(AF_INET,server_ip,&ip4addr.sin_addr) != 1)
+    return false;
+  return true;
 }
 
 client::client(char *port){
@@ -31,11 +36,11 @@ client::client(char *port){
   struct hostent *ht;
   char hostname[1024];
   if (gethostname(hostname,1024) < 0){
-    cerr<<"gethostname"<<endl;
+    cout<<"gethostname"<<endl;
     exit(1);
   }
   if ((ht=gethostbyname(hostname)) == NULL){
-    cerr<<"gethostbyname"<<endl;
+    cout<<"gethostbyname"<<endl;
     exit(1);
   }
   struct in_addr **addr_list = (struct in_addr **)ht->h_addr_list;
@@ -45,26 +50,26 @@ client::client(char *port){
 
   /* Create socket. */
   if ((host_info.listener = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-    cerr<<"socket\n";
+    cout<<"socket\n";
     exit(1);
   }
 
   /* Bind socket */
   struct sockaddr_in client_addr; 
-  bzero(&client_addr,sizeof(client_addr));
+  memset(&client_addr,0,sizeof(client_addr));
   client_addr.sin_family = AF_INET; 
   client_addr.sin_port = htons(atoi(port)); 
   client_addr.sin_addr = *((struct in_addr*)ht->h_addr);
   if (bind(host_info.listener, (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
-    cerr<<"bind";
+    cout<<"bind";
     exit(1);
   }
 
   /* Main loop */
   char buf[1024];
-  for(;;){
-    bzero(&buf,sizeof(buf));
-    read(STD_IN,buf,1024);
+  while(true){
+    memset(&buf,0,sizeof(buf));
+    read(STDIN,buf,1024);
     buf[strlen(buf)-1]='\0';
     if (strcmp(buf,"EXIT") == 0){
       cse4589_print_and_log("[EXIT:SUCCESS]\n");
@@ -128,7 +133,7 @@ client::client(char *port){
       else{
         struct addrinfo hints;
         struct addrinfo *result;
-        bzero(&hints, sizeof(hints));
+        memset(&hints,0, sizeof(hints));
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
         if (getaddrinfo(server_ip, server_port, &hints, &result) != 0) {
@@ -144,7 +149,7 @@ client::client(char *port){
 
           /* Connect to server */
           struct sockaddr_in dest_addr; 
-          bzero(&dest_addr,sizeof(dest_addr));
+          memset(&dest_addr,0,sizeof(dest_addr));
           dest_addr.sin_family = AF_INET;
           dest_addr.sin_port = htons(port);
           dest_addr.sin_addr.s_addr = inet_addr(server_ip);
@@ -154,26 +159,26 @@ client::client(char *port){
           }
            
           char client_port[8];
-          bzero(&client_port,sizeof(client_port));
+          memset(&client_port,0,sizeof(client_port));
           strcat(client_port,host_info.port_number);
           if(send(host_info.listener,client_port,strlen(client_port),0)<0){
-            cerr<<"port"<<endl;
+            cout<<"port"<<endl;
           }
 
 
           char buf[1024];
-          for(;;){
+          while(true){
             /* Add the listener to read set */
-            bzero(&buf,sizeof(buf));
+            memset(&buf,0,sizeof(buf));
             fd_set read_fds;
             FD_ZERO(&read_fds);
-            FD_SET(STD_IN,&read_fds);
+            FD_SET(STDIN,&read_fds);
             FD_SET(host_info.listener,&read_fds);
 
             int fd_max = host_info.listener;
             select(fd_max+1, &read_fds, NULL, NULL, NULL);
-            if (FD_ISSET(STD_IN, &read_fds)){
-              read(STD_IN,buf,1024);
+            if (FD_ISSET(STDIN, &read_fds)){
+              read(STDIN,buf,1024);
               buf[strlen(buf)-1]='\0';
 
               if (strcmp(buf,"AUTHOR") == 0){
@@ -206,7 +211,7 @@ client::client(char *port){
               }
               else if(strncmp(buf,"SEND",4) == 0){
                 char send_message[1024];
-                bzero(&send_message,sizeof(send_message));
+                memset(&send_message,0,sizeof(send_message));
                 strcpy(send_message,buf);
                 char *arg[3];
                 arg[0] = strtok(buf," ");
@@ -236,7 +241,7 @@ client::client(char *port){
               }
               else if(strncmp(buf,"BLOCK",5) == 0){/* Still need arg[1] */
                 char temp_buf[1024];
-                bzero(&temp_buf,sizeof(temp_buf));
+                memset(&temp_buf,0,sizeof(temp_buf));
                 strcpy(temp_buf,buf);
                 strtok(temp_buf," ");
                 char *block_ip = strtok(NULL," ");
@@ -276,7 +281,7 @@ client::client(char *port){
               else if(strncmp(buf,"UNBLOCK",7) == 0){
                 char *arg[2];
                 char temp_buf[1024];
-                bzero(&temp_buf,sizeof(temp_buf));
+                memset(&temp_buf,0,sizeof(temp_buf));
                 strcpy(temp_buf,buf);
                 arg[0] = strtok(temp_buf," ");
                 arg[1] = strtok(NULL," ");
@@ -311,7 +316,7 @@ client::client(char *port){
             }
             else{
               char msg[1024];
-              bzero(&msg,sizeof(msg));
+              memset(&msg,0,sizeof(msg));
               int recvbytes;
               if((recvbytes = recv(host_info.listener,msg,sizeof(msg),0)) <= 0){
                 cout<<"recv"<<endl;
@@ -349,10 +354,10 @@ client::client(char *port){
                     list_msg[0] = strtok(NULL," ");
                     char mesg[512];
                     char messag[4096];
-                    bzero(&messag,sizeof(messag));
+                    memset(&messag,0,sizeof(messag));
                     while(list_msg[0] != NULL && strcmp(list_msg[0],"BUFFER") == 0){
                       char original_messag[4096];
-                      bzero(&original_messag,sizeof(original_messag));
+                      memset(&original_messag,0,sizeof(original_messag));
                       strcpy(messag,strtok(NULL,""));
                       strcpy(original_messag,messag);
 
@@ -362,7 +367,7 @@ client::client(char *port){
                       int length = atoi(l);
                       char *next;
                       next = strtok(NULL,"");
-                      bzero(&mesg,sizeof(mesg));
+                      memset(&mesg,0,sizeof(mesg));
                       strncpy(mesg,next,length);
                       cse4589_print_and_log("[%s:SUCCESS]\n", "RECEIVED");
                       cse4589_print_and_log("msg from:%s\n[msg]:%s\n",fr,mesg);
@@ -384,7 +389,7 @@ client::client(char *port){
 
 
                     for(int j = 1;j != 3;++j){
-                      bzero(&list_msg[j],sizeof(list_msg[j]));
+                      memset(&list_msg[j],0,sizeof(list_msg[j]));
                       list_msg[j] = strtok(NULL," ");
                     }
                     struct socket_info si;
@@ -404,7 +409,7 @@ client::client(char *port){
                       break;
                     
                     for(int j = 1;j != 3;++j){
-                      bzero(&list_msg[j],sizeof(list_msg[j]));
+                      memset(&list_msg[j],0,sizeof(list_msg[j]));
                       list_msg[j] = strtok(NULL," ");
                     }
                     struct socket_info si;
@@ -426,11 +431,3 @@ client::client(char *port){
 }
 
 
-bool client::isvalid(char *server_ip,int p){
-  struct sockaddr_in ip4addr;
-  ip4addr.sin_family = AF_INET;
-  ip4addr.sin_port = htons(p);
-  if(inet_pton(AF_INET,server_ip,&ip4addr.sin_addr) != 1)
-    return false;
-  return true;
-}

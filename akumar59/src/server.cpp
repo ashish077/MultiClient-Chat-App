@@ -28,6 +28,15 @@ bool compare_blocks(block b1,block b2){
 bool compare_clients(socket_info s1,socket_info s2){
   return s1.port_num < s2.port_num;
 }
+
+bool isvalid(char *server_ip){
+  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
+    if(strcmp(server_ip,iter->ip_addr) == 0)
+     { return true;}
+  }
+  return false;
+}
+
 //LIST OF LOGGED IN CLIENTS
 void server::List_clients()
   {
@@ -84,7 +93,7 @@ void server::List_clients()
   
             
             char clientListMsg[4096];
-            bzero(&clientListMsg,sizeof(clientListMsg));
+            memset(&clientListMsg,0,sizeof(clientListMsg));
             strcat(clientListMsg,"LOGIN ");
             for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
               if(strcmp(iter->status,"logged-in") == 0){
@@ -93,7 +102,7 @@ void server::List_clients()
                 strcat(clientListMsg,iter->ip_addr);
                 strcat(clientListMsg," ");
                 char at[8];
-                bzero(&at,sizeof(at));
+                memset(&at,0,sizeof(at));
                 snprintf(at, sizeof(at), "%d", iter->port_num);
                 strcat(clientListMsg,at);
                 strcat(clientListMsg," ");
@@ -109,7 +118,7 @@ void server::List_clients()
                   strcat(clientListMsg," ");
 
                   char siz[5];
-                  bzero(&siz,sizeof(siz));
+                  memset(&siz,0,sizeof(siz));
                   int length = strlen(buffInfo.mesg);
                   sprintf(siz,"%d",length);
                   strcat(clientListMsg,siz);
@@ -169,7 +178,7 @@ void server::List_clients()
   void server::send_broadcast(int sock_index){
        cse4589_print_and_log("[%s:SUCCESS]\n", "RELAYED");
               char from_client_ip[32];
-              bzero(&from_client_ip,sizeof(from_client_ip));
+              memset(&from_client_ip,0,sizeof(from_client_ip));
               for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(iter->fd == sock_index){
                   strcpy(from_client_ip,iter->ip_addr);
@@ -181,7 +190,7 @@ void server::List_clients()
               arg[1] = strtok(NULL,"");
 
               char new_msg[1024];
-              bzero(&new_msg,sizeof(new_msg));
+              memset(&new_msg,0,sizeof(new_msg));
               strcat(new_msg,"BROADCAST ");
               strcat(new_msg,from_client_ip);
               strcat(new_msg," ");
@@ -212,7 +221,7 @@ void server::List_clients()
   void server::refresh()
   {     // refresh to ground state
       char clientListMsg[4096];
-              bzero(&clientListMsg,sizeof(clientListMsg));
+              memset(&clientListMsg,0,sizeof(clientListMsg));
               char *client_ip = strtok(NULL," ");
               strcat(clientListMsg,"REFRESH ");
               for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
@@ -222,7 +231,7 @@ void server::List_clients()
                   strcat(clientListMsg,iter->ip_addr);
                   strcat(clientListMsg," ");
                   char pn[8];
-                  bzero(&pn,sizeof(pn));
+                  memset(&pn,0,sizeof(pn));
                   snprintf(pn, sizeof(pn), "%d", iter->port_num);
                   strcat(clientListMsg,pn);
                   strcat(clientListMsg," ");
@@ -234,7 +243,7 @@ void server::List_clients()
   void server::send_message(int sock_index)
   {
      char from_client_ip[32];
-              bzero(&from_client_ip,sizeof(from_client_ip));
+              memset(&from_client_ip,0,sizeof(from_client_ip));
               for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(iter->fd == sock_index){
                   strcpy(from_client_ip,iter->ip_addr);
@@ -248,7 +257,7 @@ void server::List_clients()
               arg[2] = strtok(NULL,"");
 
               char new_msg[1024];
-              bzero(&new_msg,sizeof(new_msg));
+              memset(&new_msg,0,sizeof(new_msg));
               strcat(new_msg,"SEND ");
               strcat(new_msg,(const char*) from_client_ip);
               strcat(new_msg," ");
@@ -285,7 +294,7 @@ void server::List_clients()
                     break;
                   }
                 }
-                bzero(&msg,sizeof(msg));
+                memset(&msg,0,sizeof(msg));
               }
               //if destiantion ip address is logged out buffer it
               if(!log && !blocked){
@@ -341,7 +350,7 @@ server::server(char* port){
 
   // bind the socket to  an address
   struct sockaddr_in server_addr;
-  bzero(&server_addr,sizeof(server_addr));
+  memset(&server_addr,0,sizeof(server_addr));
   server_addr.sin_family = AF_INET; 
   server_addr.sin_port = htons(atoi(port)); 
   server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -459,7 +468,7 @@ server::server(char* port){
               strncpy(sock.status,sts,strlen(sts));
 
               char client_port[8];
-              bzero(&client_port,sizeof(client_port));
+              memset(&client_port,0,sizeof(client_port));
               if(recv(head_socket,client_port,sizeof(client_port),0) <= 0){
                 cerr<<"port"<<endl;
               }
@@ -473,7 +482,7 @@ server::server(char* port){
         } 
         else {
           char msg[1024];
-          bzero(&msg,sizeof(msg));
+          memset(&msg,0,sizeof(msg));
           /* Handle data from a client */
           if ((nbytes = recv(sock_index, msg, sizeof(msg), 0)) <= 0) {
             /* Got error or connection closed by client */
@@ -500,8 +509,8 @@ server::server(char* port){
 
             char original_msg[1024];
             char buffer_msg[1024];
-            bzero(&original_msg,sizeof(original_msg));
-            bzero(&buffer_msg,sizeof(buffer_msg));
+            memset(&original_msg,0,sizeof(original_msg));
+            memset(&buffer_msg,0,sizeof(buffer_msg));
             strcpy(original_msg,msg);
             strcpy(buffer_msg,msg);
             char *arg_zero = strtok(msg," ");
@@ -544,13 +553,7 @@ server::server(char* port){
   }
 } 
 
-bool server::isvalid(char *server_ip){
-  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
-    if(strcmp(server_ip,iter->ip_addr) == 0)
-     { return true;}
-  }
-  return false;
-}
+
 
 
 
