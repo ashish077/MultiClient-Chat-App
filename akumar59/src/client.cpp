@@ -38,35 +38,11 @@ void client::List_clients(){
       cse4589_print_and_log("[LIST:END]\n");
 }
 
-bool send_message(char *buf){
-
-  char send_message[1024],*arg[3];;
-  memset(&send_message,0,sizeof(send_message));
-  strcpy(send_message,buf);
-  
-  arg[0] = strtok(buf," ");
-  int idx = 1;
-  while(idx != 3){
-    arg[idx] = strtok(NULL," ");
-    idx++;
-  }
-  /* Whether in current list */
-  bool isval = false;
-  list<socket_info>::iterator iter = host_info.clients.begin();
-  while(iter != host_info.clients.end()){
-    if(strcmp(iter->ip_addr,arg[1]) == 0) 
-      isval = true;
-    iter++;
-  }
-  return (!isval || send(host_info.listener,send_message,strlen(send_message),0)<0);
-}
-
-
 client::client(char *port){
-  /* Save port number */
+  
   strcpy(host_info.port_number,port);
 
-  /* Save IP address */
+  
   struct hostent *ht;
   char hostname[1024];
   if (gethostname(hostname,1024) < 0){
