@@ -40,9 +40,9 @@ void client::List_clients(){
 
 client::client(char *port){
   
-  strcpy(host_info.port_number,port);
 
-  
+  // Fetching Host Names, Port No. and IP
+  strcpy(host_info.port_number,port);
   struct hostent *ht;
   char hostname[1024];
   if (gethostname(hostname,1024) < 0){
@@ -53,6 +53,7 @@ client::client(char *port){
     cout<<"gethostbyname\n";
     exit(1);
   }
+
   struct in_addr **addr_list = (struct in_addr **)ht->h_addr_list;
   int idx = 0;
   while(addr_list[idx] != NULL)
@@ -61,13 +62,13 @@ client::client(char *port){
     idx++;
   }
 
-  /* Create socket. */
+  // Socket Creation 
   if ((host_info.listener = socket(AF_INET, SOCK_STREAM, 0)) < 0){
     cout<<"socket\n";
     exit(1);
   }
 
-  /* Bind socket */
+  // Socket Binding
   struct sockaddr_in client_addr; 
   memset(&client_addr,0,sizeof(client_addr));
   client_addr.sin_family = AF_INET; 
@@ -78,42 +79,19 @@ client::client(char *port){
     exit(1);
   }
 
-  /* Main loop */
   char buf[1024];
+  // Infinite Loop till exit command
   while(true){
     memset(&buf,0,sizeof(buf));
     read(STDIN,buf,1024);
     buf[strlen(buf)-1]='\0';
-    if (strcmp(buf,"EXIT") == 0){
-      cse4589_print_and_log("[EXIT:SUCCESS]\n");
-      cse4589_print_and_log("[EXIT:END]\n");
-      break;
-    }
-    else if (strcmp(buf,"AUTHOR") == 0){
-      cse4589_print_and_log("[AUTHOR:SUCCESS]\n");
-      cse4589_print_and_log("I, akumar59, have read and understood the course academic integrity policy.\n");
-      cse4589_print_and_log("[AUTHOR:END]\n");
-    }
-    else if (strcmp(buf,"PORT") == 0){
-      cse4589_print_and_log("[PORT:SUCCESS]\n");
-      cse4589_print_and_log("PORT:%s\n",host_info.port_number);
-      cse4589_print_and_log("[PORT:END]\n");
-    }
-    else if (strcmp(buf,"IP") == 0){
-      cse4589_print_and_log("[IP:SUCCESS]\n");
-      cse4589_print_and_log("IP:%s\n",host_info.ip_address);
-      cse4589_print_and_log("[IP:END]\n");
-    }
-    else if (strcmp(buf,"LIST") == 0){
-      List_clients();
-    }
-    else if (strncmp(buf,"LOGIN",5) == 0){
+      
+    if (strncmp(buf,"LOGIN",5) == 0){
       char *server_ip,*server_port;
       strtok(buf," ");
       server_ip = strtok(NULL," ");
       server_port = strtok(NULL," ");
       
-
       bool valid_port = true;
       if(server_port == NULL){
         cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
@@ -138,7 +116,7 @@ client::client(char *port){
         continue;
       }
 
-      /* Invalid ip address */
+      // Checking IP and Port Combination for validity
       if (!isValidSocket(server_ip,port)){
         cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
         cse4589_print_and_log("[%s:END]\n","LOGIN");
@@ -152,17 +130,16 @@ client::client(char *port){
         if (getaddrinfo(server_ip, server_port, &hints, &result) != 0) {
         cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
         cse4589_print_and_log("[%s:END]\n","LOGIN");
-          continue;
+        continue;
         }
         else{
-          /* Get socket fd */
           if ((host_info.listener = socket(AF_INET, SOCK_STREAM, 0)) < 0){
           cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
           cse4589_print_and_log("[%s:END]\n","LOGIN");
             continue;
           }
 
-          /* Connect to server */
+          // Server Connection on LOGIN 
           struct sockaddr_in dest_addr; 
           memset(&dest_addr,0,sizeof(dest_addr));
           dest_addr.sin_family = AF_INET;
@@ -183,8 +160,9 @@ client::client(char *port){
 
 
           char buf[1024];
+          // Infinite Loop till Logout Command
           while(true){
-            /* Add the listener to read set */
+            
             memset(&buf,0,sizeof(buf));
             fd_set read_fds;
             FD_ZERO(&read_fds);
@@ -237,7 +215,7 @@ client::client(char *port){
                   arg[idx] = strtok(NULL," ");
                   idx++;
                 }
-                /* Whether in current list */
+                
                 bool isval = false;
                 list<socket_info>::iterator iter = host_info.clients.begin();
                 while(iter != host_info.clients.end()){
@@ -261,7 +239,7 @@ client::client(char *port){
                 cse4589_print_and_log("[BROADCAST:SUCCESS]\n");
                 cse4589_print_and_log("[BROADCAST:END]\n");
               }
-              else if(strncmp(buf,"BLOCK",5) == 0){/* Still need arg[1] */
+              else if(strncmp(buf,"BLOCK",5) == 0){
                 char temp_buf[1024];
                 memset(&temp_buf,0,sizeof(temp_buf));
                 strcpy(temp_buf,buf);
@@ -356,8 +334,8 @@ client::client(char *port){
               
               char *arg_zero = strtok(msg," ");
 
-              /* Process received data */
-              
+              // Received Data Operation
+
               if(FD_ISSET(host_info.listener,&read_fds)){
                 
                 if(strcmp(arg_zero,"SEND") == 0){
@@ -382,7 +360,6 @@ client::client(char *port){
                   while(true){
                     char *list_msg[3];
 
-                    /* If have buffer. */
                     list_msg[0] = strtok(NULL," ");
                     char mesg[512];
                     char messag[4096];
@@ -459,6 +436,29 @@ client::client(char *port){
           }
         }
       }
+    }
+    else if (strcmp(buf,"LIST") == 0){
+      List_clients();
+    }
+    else if (strcmp(buf,"AUTHOR") == 0){
+      cse4589_print_and_log("[AUTHOR:SUCCESS]\n");
+      cse4589_print_and_log("I, akumar59, have read and understood the course academic integrity policy.\n");
+      cse4589_print_and_log("[AUTHOR:END]\n");
+    }
+    else if (strcmp(buf,"IP") == 0){
+      cse4589_print_and_log("[IP:SUCCESS]\n");
+      cse4589_print_and_log("IP:%s\n",host_info.ip_address);
+      cse4589_print_and_log("[IP:END]\n");
+    }
+    else if (strcmp(buf,"PORT") == 0){
+      cse4589_print_and_log("[PORT:SUCCESS]\n");
+      cse4589_print_and_log("PORT:%s\n",host_info.port_number);
+      cse4589_print_and_log("[PORT:END]\n");
+    }    
+    else if (strcmp(buf,"EXIT") == 0){
+      cse4589_print_and_log("[EXIT:SUCCESS]\n");
+      cse4589_print_and_log("[EXIT:END]\n");
+      break;
     }
   }
 }
