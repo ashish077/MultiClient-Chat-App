@@ -33,13 +33,13 @@ void displayError(const char* errorCommand){
 
 void displayIP(){
   cse4589_print_and_log("[IP:SUCCESS]\n");
-  cse4589_print_and_log("IP:%s\n",information.ip_address);
+  cse4589_print_and_log("IP:%s\n",host_info.ip_address);
   cse4589_print_and_log("[IP:END]\n");
 }
 
 void displayPort(){
   cse4589_print_and_log("[PORT:SUCCESS]\n");
-  cse4589_print_and_log("PORT:%s\n",information.port_number);
+  cse4589_print_and_log("PORT:%s\n",host_info.port_number);
   cse4589_print_and_log("[PORT:END]\n");
 }
 
