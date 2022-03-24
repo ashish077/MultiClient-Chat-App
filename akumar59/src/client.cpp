@@ -36,16 +36,19 @@ client::client(char *port){
   struct hostent *ht;
   char hostname[1024];
   if (gethostname(hostname,1024) < 0){
-    cout<<"gethostname"<<endl;
+    cout<<"gethostname\n";
     exit(1);
   }
   if ((ht=gethostbyname(hostname)) == NULL){
-    cout<<"gethostbyname"<<endl;
+    cout<<"gethostbyname\n";
     exit(1);
   }
   struct in_addr **addr_list = (struct in_addr **)ht->h_addr_list;
-  for(int i = 0;addr_list[i] != NULL;++i){
-    strcpy(host_info.ip_address,inet_ntoa(*addr_list[i]));
+  int idx = 0;
+  while(addr_list[idx] != NULL)
+  {
+    strcpy(host_info.ip_address,inet_ntoa(*addr_list[idx]));
+    idx++;
   }
 
   /* Create socket. */
@@ -89,15 +92,16 @@ client::client(char *port){
       cse4589_print_and_log("[LIST:SUCCESS]\n");
       int i = 0;
       host_info.clients.sort(compare_client);
-      for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
+      list<socket_info>::iterator iter = host_info.clients.begin();
+      while(iter != host_info.clients.end()){
         if (strcmp(iter->status,"logged-in") == 0)
            cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++i,iter->hostname,iter->ip_addr,iter->port_num);
+        iter++;
       }
       cse4589_print_and_log("[LIST:END]\n");
     }
     else if (strncmp(buf,"LOGIN",5) == 0){
-      char *server_ip;
-      char *server_port;
+      char *server_ip,*server_port;
       strtok(buf," ");
       server_ip = strtok(NULL," ");
       server_port = strtok(NULL," ");
@@ -107,16 +111,15 @@ client::client(char *port){
       if(server_port == NULL){
         print_error("LOGIN");
         continue;
-      }   
-      for(int i = 0;i != strlen(server_port);++i){
-        if(server_port[i] >= '0' && server_port[i] <= '9'){
-          continue;
-        }
-        else{
+      }
+      idx = 0;   
+      while(idx != strlen(server_port)){
+        if(server_port[idx] < '0' || server_port[idx] > '9'){
           print_error("LOGIN");
           valid_port = false;
           break;
-        }
+        }        
+        idx++;
       }
       if(!valid_port) continue;
       int port = atoi(server_port);
@@ -131,8 +134,7 @@ client::client(char *port){
         continue;
       }
       else{
-        struct addrinfo hints;
-        struct addrinfo *result;
+        struct addrinfo *result,hints;
         memset(&hints,0, sizeof(hints));
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
@@ -162,7 +164,7 @@ client::client(char *port){
           memset(&client_port,0,sizeof(client_port));
           strcat(client_port,host_info.port_number);
           if(send(host_info.listener,client_port,strlen(client_port),0)<0){
-            cout<<"port"<<endl;
+            cout<<"port\n";
           }
 
 
@@ -194,9 +196,11 @@ client::client(char *port){
                   cse4589_print_and_log("[LIST:SUCCESS]\n");
                   int i = 0;
                   host_info.clients.sort(compare_client);
-                  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
+                  list<socket_info>::iterator iter = host_info.clients.begin();
+                  while(iter != host_info.clients.end()){
                     if (strcmp(iter->status,"logged-in") == 0)
                       cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++i,iter->hostname,iter->ip_addr,iter->port_num);
+                    iter++;
                   }
                   cse4589_print_and_log("[LIST:END]\n");
               }
@@ -210,19 +214,23 @@ client::client(char *port){
                 cse4589_print_and_log("[REFRESH:END]\n");
               }
               else if(strncmp(buf,"SEND",4) == 0){
-                char send_message[1024];
+                char send_message[1024],*arg[3];;
                 memset(&send_message,0,sizeof(send_message));
                 strcpy(send_message,buf);
-                char *arg[3];
+                
                 arg[0] = strtok(buf," ");
-                for(int i = 1;i != 3;++i){
-                  arg[i] = strtok(NULL," ");
+                idx = 1;
+                while(idx != 3){
+                  arg[idx] = strtok(NULL," ");
+                  idx++;
                 }
                 /* Whether in current list */
                 bool isval = false;
-                for(list<socket_info>::iterator it = host_info.clients.begin();it != host_info.clients.end();++it){
-                  if(strcmp(it->ip_addr,arg[1]) == 0) 
+                list<socket_info>::iterator iter = host_info.clients.begin();
+                while(iter != host_info.clients.end()){
+                  if(strcmp(iter->ip_addr,arg[1]) == 0) 
                     isval = true;
+                  iter++;
                 }
             
                 if(!isval || send(host_info.listener,send_message,strlen(send_message),0)<0){
@@ -248,20 +256,24 @@ client::client(char *port){
                 bool isval = false;
                 bool isblocked = false;
                 block b;
-                for(list<socket_info>::iterator it = host_info.clients.begin();it != host_info.clients.end();++it){
-                  if(strcmp(it->ip_addr,block_ip) == 0) {
+                list<socket_info>::iterator iter = host_info.clients.begin();
+                while(iter != host_info.clients.end()){
+                  if(strcmp(iter->ip_addr,block_ip) == 0) {
                     isval = true;
-                    b.listen_port_num = it->port_num;
-                    strcpy(b.host,it->hostname);
-                    strcpy(b.ip,it->ip_addr);
+                    b.listen_port_num = iter->port_num;
+                    strcpy(b.host,iter->hostname);
+                    strcpy(b.ip,iter->ip_addr);
                     break;
                   }
+                  iter++;
                 }
-                for(list<block>::iterator block_it = host_info.block_list.begin();block_it != host_info.block_list.end();++block_it){
-                  if(strcmp(block_ip,block_it->ip) == 0){
+                list<block>::iterator iter_block = host_info.block_list.begin();
+                while(iter_block != host_info.block_list.end()){
+                  if(strcmp(block_ip,iter_block->ip) == 0){
                     isblocked = true;
                     break;
                   }
+                  iter_block++;
                 }
 
                 if(!isval || isblocked){
@@ -279,20 +291,22 @@ client::client(char *port){
                 cse4589_print_and_log("[BLOCK:END]\n");
               }
               else if(strncmp(buf,"UNBLOCK",7) == 0){
-                char *arg[2];
-                char temp_buf[1024];
+                char temp_buf[1024],*arg[2];
+                
                 memset(&temp_buf,0,sizeof(temp_buf));
                 strcpy(temp_buf,buf);
                 arg[0] = strtok(temp_buf," ");
                 arg[1] = strtok(NULL," ");
 
                 bool valid = false;
-                for(list<block>::iterator block_it = host_info.block_list.begin();block_it != host_info.block_list.end();++block_it){
-                  if(strcmp(block_it->ip,arg[1]) == 0){
-                    host_info.block_list.erase(block_it);
+                list<block>::iterator iter_block = host_info.block_list.begin();
+                while(iter_block != host_info.block_list.end()){
+                  if(strcmp(iter_block->ip,arg[1]) == 0){
+                    host_info.block_list.erase(iter_block);
                     valid = true;
                     break;
                   }
+                  iter_block++;
                 }
                 if(!valid || send(host_info.listener,buf,strlen(buf),0)<0){
                   print_error("UNBLOCK");
@@ -319,7 +333,7 @@ client::client(char *port){
               memset(&msg,0,sizeof(msg));
               int recvbytes;
               if((recvbytes = recv(host_info.listener,msg,sizeof(msg),0)) <= 0){
-                cout<<"recv"<<endl;
+                cout<<"recv\n";
               }
               
               char *arg_zero = strtok(msg," ");
@@ -387,10 +401,11 @@ client::client(char *port){
                       break;
                     }
 
-
-                    for(int j = 1;j != 3;++j){
-                      memset(&list_msg[j],0,sizeof(list_msg[j]));
-                      list_msg[j] = strtok(NULL," ");
+                    idx = 1;
+                    while(idx != 3){
+                      memset(&list_msg[idx],0,sizeof(list_msg[idx]));
+                      list_msg[idx] = strtok(NULL," ");
+                      idx++;
                     }
                     struct socket_info si;
                     strcpy(si.hostname,list_msg[0]);
@@ -408,9 +423,11 @@ client::client(char *port){
                     if((list_msg[0] = strtok(NULL," ")) == NULL)
                       break;
                     
-                    for(int j = 1;j != 3;++j){
-                      memset(&list_msg[j],0,sizeof(list_msg[j]));
-                      list_msg[j] = strtok(NULL," ");
+                    idx = 1;
+                    while(idx != 3){
+                      memset(&list_msg[idx],0,sizeof(list_msg[idx]));
+                      list_msg[idx] = strtok(NULL," ");
+                      idx++;
                     }
                     struct socket_info si;
                     strcpy(si.hostname,list_msg[0]);
