@@ -5,6 +5,7 @@
 class client:public global{
 public:
   client(char *port);
+  void List_clients();
 };
 
 #endif

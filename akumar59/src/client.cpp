@@ -27,6 +27,18 @@ bool isvalid(char *server_ip,int p){
     return false;
   return true;
 }
+void client::List_clients(){
+  cse4589_print_and_log("[LIST:SUCCESS]\n");
+      int cnt = 1;
+      host_info.clients.sort(compare_client);
+      list<socket_info>::iterator iter = host_info.clients.begin();
+      while(iter != host_info.clients.end()){
+        if (strcmp(iter->status,"logged-in") == 0)
+           cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",cnt++,iter->hostname,iter->ip_addr,iter->port_num);
+        iter++;
+      }
+      cse4589_print_and_log("[LIST:END]\n");
+}
 
 client::client(char *port){
   /* Save port number */
@@ -89,16 +101,7 @@ client::client(char *port){
       print_ip();
     }
     else if (strcmp(buf,"LIST") == 0){
-      cse4589_print_and_log("[LIST:SUCCESS]\n");
-      int i = 0;
-      host_info.clients.sort(compare_client);
-      list<socket_info>::iterator iter = host_info.clients.begin();
-      while(iter != host_info.clients.end()){
-        if (strcmp(iter->status,"logged-in") == 0)
-           cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++i,iter->hostname,iter->ip_addr,iter->port_num);
-        iter++;
-      }
-      cse4589_print_and_log("[LIST:END]\n");
+      List_clients();
     }
     else if (strncmp(buf,"LOGIN",5) == 0){
       char *server_ip,*server_port;
@@ -193,16 +196,7 @@ client::client(char *port){
                 print_ip();
               }
               else if (strcmp(buf,"LIST") == 0){
-                  cse4589_print_and_log("[LIST:SUCCESS]\n");
-                  int i = 0;
-                  host_info.clients.sort(compare_client);
-                  list<socket_info>::iterator iter = host_info.clients.begin();
-                  while(iter != host_info.clients.end()){
-                    if (strcmp(iter->status,"logged-in") == 0)
-                      cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++i,iter->hostname,iter->ip_addr,iter->port_num);
-                    iter++;
-                  }
-                  cse4589_print_and_log("[LIST:END]\n");
+                  List_clients();
               }
               else if(strcmp(buf,"REFRESH") == 0){
                 strcat(buf," ");
