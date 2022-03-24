@@ -39,7 +39,7 @@ void client::List_clients(){
       cse4589_print_and_log("[LIST:END]\n");
 }
 
-void client::refresh(char *buf){
+void refresh(char *buf){
   strcat(buf," ");
   strcat(buf,host_info.ip_address);
   if(send(host_info.listener,buf,strlen(buf),0)<0){
@@ -50,7 +50,7 @@ void client::refresh(char *buf){
   cse4589_print_and_log("[REFRESH:END]\n");
 }
 
-bool client::send_message(char *buf){
+bool send_message(char *buf){
 
   char send_message[1024],*arg[3];;
   memset(&send_message,0,sizeof(send_message));
