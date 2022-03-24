@@ -387,7 +387,9 @@ server::server(char* port){
           read(STDIN,buf,1024);
           buf[strlen(buf)-1]='\0';
           if (strcmp(buf,"AUTHOR")==0){
-            print_author();
+            cse4589_print_and_log("[AUTHOR:SUCCESS]\n");
+            cse4589_print_and_log("I, akumar59, have read and understood the course academic integrity policy.\n");
+            cse4589_print_and_log("[AUTHOR:END]\n");
           }
           if (strcmp(buf,"IP")==0){
               print_ip();
