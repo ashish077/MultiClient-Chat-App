@@ -19,14 +19,18 @@ bool compare_client(socket_info s1,socket_info s2){
   return s1.port_num < s2.port_num;
 }
 
-bool isvalid(char *server_ip,int p){
+bool isValidSocket(char *server_ip,int p){
   struct sockaddr_in ip4addr;
   ip4addr.sin_family = AF_INET;
   ip4addr.sin_port = htons(p);
-  if(inet_pton(AF_INET,server_ip,&ip4addr.sin_addr) != 1)
-    return false;
-  return true;
+  return !(inet_pton(AF_INET,server_ip,&ip4addr.sin_addr) != 1);
 }
+
+void displayError(const char* errorCommand){
+  cse4589_print_and_log("[%s:ERROR]\n",errorCommand);
+  cse4589_print_and_log("[%s:END]\n",errorCommand);
+}
+
 void client::List_clients(){
   cse4589_print_and_log("[LIST:SUCCESS]\n");
       int cnt = 1;
@@ -39,6 +43,40 @@ void client::List_clients(){
       }
       cse4589_print_and_log("[LIST:END]\n");
 }
+
+void client::refresh(char buf[]){
+  strcat(buf," ");
+  strcat(buf,host_info.ip_address);
+  if(send(host_info.listener,buf,strlen(buf),0)<0){
+    displayError("REFRESH");
+  }
+  cse4589_print_and_log("[REFRESH:SUCCESS]\n");
+  cse4589_print_and_log("[REFRESH:END]\n");
+}
+
+bool client::send_message(char buf[]){
+
+  char send_message[1024],*arg[3];;
+  memset(&send_message,0,sizeof(send_message));
+  strcpy(send_message,buf);
+  
+  arg[0] = strtok(buf," ");
+  int idx = 1;
+  while(idx != 3){
+    arg[idx] = strtok(NULL," ");
+    idx++;
+  }
+  /* Whether in current list */
+  bool isval = false;
+  list<socket_info>::iterator iter = host_info.clients.begin();
+  while(iter != host_info.clients.end()){
+    if(strcmp(iter->ip_addr,arg[1]) == 0) 
+      isval = true;
+    iter++;
+  }
+  return (!isval || send(host_info.listener,send_message,strlen(send_message),0)<0);
+}
+
 
 client::client(char *port){
   /* Save port number */
@@ -114,13 +152,13 @@ client::client(char *port){
 
       bool valid_port = true;
       if(server_port == NULL){
-        print_error("LOGIN");
+        displayError("LOGIN");
         continue;
       }
       idx = 0;   
       while(idx != strlen(server_port)){
         if(server_port[idx] < '0' || server_port[idx] > '9'){
-          print_error("LOGIN");
+          displayError("LOGIN");
           valid_port = false;
           break;
         }        
@@ -129,13 +167,13 @@ client::client(char *port){
       if(!valid_port) continue;
       int port = atoi(server_port);
       if(port < 0 || port > 65535){
-        print_error("LOGIN");
+        displayError("LOGIN");
         continue;
       }
 
       /* Invalid ip address */
-      if (!isvalid(server_ip,port)){
-        print_error("LOGIN");
+      if (!isValidSocket(server_ip,port)){
+        displayError("LOGIN");
         continue;
       }
       else{
@@ -144,13 +182,13 @@ client::client(char *port){
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
         if (getaddrinfo(server_ip, server_port, &hints, &result) != 0) {
-          print_error("LOGIN");
+          displayError("LOGIN");
           continue;
         }
         else{
           /* Get socket fd */
           if ((host_info.listener = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-            print_error("LOGIN");
+            displayError("LOGIN");
             continue;
           }
 
@@ -161,7 +199,7 @@ client::client(char *port){
           dest_addr.sin_port = htons(port);
           dest_addr.sin_addr.s_addr = inet_addr(server_ip);
           if ((connect(host_info.listener, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr))) < 0){
-            print_error("LOGIN");
+            displayError("LOGIN");
             continue;
           }
            
@@ -203,36 +241,13 @@ client::client(char *port){
                   List_clients();
               }
               else if(strcmp(buf,"REFRESH") == 0){
-                strcat(buf," ");
-                strcat(buf,host_info.ip_address);
-                if(send(host_info.listener,buf,strlen(buf),0)<0){
-                  print_error("REFRESH");
-                }
-                cse4589_print_and_log("[REFRESH:SUCCESS]\n");
-                cse4589_print_and_log("[REFRESH:END]\n");
+                refresh(buf);
               }
               else if(strncmp(buf,"SEND",4) == 0){
-                char send_message[1024],*arg[3];;
-                memset(&send_message,0,sizeof(send_message));
-                strcpy(send_message,buf);
                 
-                arg[0] = strtok(buf," ");
-                idx = 1;
-                while(idx != 3){
-                  arg[idx] = strtok(NULL," ");
-                  idx++;
-                }
-                /* Whether in current list */
-                bool isval = false;
-                list<socket_info>::iterator iter = host_info.clients.begin();
-                while(iter != host_info.clients.end()){
-                  if(strcmp(iter->ip_addr,arg[1]) == 0) 
-                    isval = true;
-                  iter++;
-                }
-            
-                if(!isval || send(host_info.listener,send_message,strlen(send_message),0)<0){
-                  print_error("SEND");
+                bool send_error = send_message(buf);
+                if(send_error){
+                  displayError("SEND");
                   continue;
                 }
                 cse4589_print_and_log("[SEND:SUCCESS]\n");
@@ -240,7 +255,7 @@ client::client(char *port){
               }
               else if(strncmp(buf,"BROADCAST",9) == 0){
                 if(send(host_info.listener,buf,strlen(buf),0)<0){
-                  print_error("BROADCAST");
+                  displayError("BROADCAST");
                 }
                 cse4589_print_and_log("[BROADCAST:SUCCESS]\n");
                 cse4589_print_and_log("[BROADCAST:END]\n");
@@ -275,11 +290,11 @@ client::client(char *port){
                 }
 
                 if(!isval || isblocked){
-                  print_error("BLOCK");
+                  displayError("BLOCK");
                   continue;
                 }
                 if(send(host_info.listener,buf,strlen(buf),0)<0){
-                  print_error("BLOCK");
+                  displayError("BLOCK");
                   continue;
                 }
                 else{
@@ -307,7 +322,7 @@ client::client(char *port){
                   iter_block++;
                 }
                 if(!valid || send(host_info.listener,buf,strlen(buf),0)<0){
-                  print_error("UNBLOCK");
+                  displayError("UNBLOCK");
                   continue;
                 }
                 cse4589_print_and_log("[UNBLOCK:SUCCESS]\n");
@@ -405,35 +420,33 @@ client::client(char *port){
                       list_msg[idx] = strtok(NULL," ");
                       idx++;
                     }
-                    struct socket_info si;
-                    strcpy(si.hostname,list_msg[0]);
-                    strcpy(si.ip_addr,list_msg[1]);
-                    int port_n = atoi(list_msg[2]);
-                    si.port_num = port_n;
-                    strcpy(si.status,"logged-in");
-                    host_info.clients.push_back(si);
+                    struct socket_info si1;
+                    strcpy(si1.hostname,list_msg[0]);
+                    strcpy(si1.ip_addr,list_msg[1]);                    
+                    si1.port_num = atoi(list_msg[2]);
+                    strcpy(si1.status,"logged-in");
+                    host_info.clients.push_back(si1);
                   }
                 }
                 else if(strcmp(arg_zero,"REFRESH") == 0){
                   host_info.clients.clear();
+                  struct socket_info si1;
+                  idx = 1;
                   while(true){
                     char *list_msg[3];
                     if((list_msg[0] = strtok(NULL," ")) == NULL)
                       break;
                     
-                    idx = 1;
                     while(idx != 3){
                       memset(&list_msg[idx],0,sizeof(list_msg[idx]));
                       list_msg[idx] = strtok(NULL," ");
                       idx++;
                     }
-                    struct socket_info si;
-                    strcpy(si.hostname,list_msg[0]);
-                    strcpy(si.ip_addr,list_msg[1]);
-                    int port_n = atoi(list_msg[2]);
-                    si.port_num = port_n;
-                    strcpy(si.status,"logged-in");
-                    host_info.clients.push_back(si);
+                    strcpy(si1.hostname,list_msg[0]);
+                    strcpy(si1.ip_addr,list_msg[1]);
+                    strcpy(si1.status,"logged-in");
+                    si1.port_num = atoi(list_msg[2]);
+                    host_info.clients.push_back(si1);
                   }
                 }
               }

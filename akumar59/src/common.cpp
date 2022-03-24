@@ -4,9 +4,6 @@
 #include <string.h>
 using namespace std;
 
-common::common(){
-}
-
 void common::print_error(const char* command_str){
   cse4589_print_and_log("[%s:ERROR]\n",command_str);
   cse4589_print_and_log("[%s:END]\n",command_str);
