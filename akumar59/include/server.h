@@ -12,6 +12,7 @@ private:
   int head_socket;
 public:
   server(char* port);
+  bool isvalid(char *server_ip);
   void send_broadcast(int i);
   void block_client(int i);
   void unblock_client(int i);

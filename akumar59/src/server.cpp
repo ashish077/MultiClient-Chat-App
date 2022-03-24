@@ -28,15 +28,6 @@ bool compare_blocks(block b1,block b2){
 bool compare_clients(socket_info s1,socket_info s2){
   return s1.port_num < s2.port_num;
 }
-
-bool isvalid(char *server_ip){
-  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
-    if(strcmp(server_ip,iter->ip_addr) == 0)
-     { return true;}
-  }
-  return false;
-}
-
 //LIST OF LOGGED IN CLIENTS
 void server::List_clients()
   {
@@ -553,7 +544,13 @@ server::server(char* port){
   }
 } 
 
-
+bool server::isvalid(char *server_ip){
+  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
+    if(strcmp(server_ip,iter->ip_addr) == 0)
+     { return true;}
+  }
+  return false;
+}
 
 
 

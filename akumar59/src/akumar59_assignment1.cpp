@@ -1,6 +1,6 @@
 /**
- * @haoweizh_assignment1
- * @author  Haowei Zhou <haoweizh@buffalo.edu>
+ * @akumar59_assignment1
+ * @author  Ashish Kumar <akumar59@buffalo.edu>
  * @version 1.0
  *
  * @section LICENSE
