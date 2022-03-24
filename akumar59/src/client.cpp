@@ -26,23 +26,6 @@ bool isValidSocket(char *server_ip,int p){
   return !(inet_pton(AF_INET,server_ip,&ip4addr.sin_addr) != 1);
 }
 
-void displayError(const char* errorCommand){
-  cse4589_print_and_log("[%s:ERROR]\n",errorCommand);
-  cse4589_print_and_log("[%s:END]\n",errorCommand);
-}
-
-void displayIP(){
-  cse4589_print_and_log("[IP:SUCCESS]\n");
-  cse4589_print_and_log("IP:%s\n",host_info.ip_address);
-  cse4589_print_and_log("[IP:END]\n");
-}
-
-void displayPort(){
-  cse4589_print_and_log("[PORT:SUCCESS]\n");
-  cse4589_print_and_log("PORT:%s\n",host_info.port_number);
-  cse4589_print_and_log("[PORT:END]\n");
-}
-
 void client::List_clients(){
   cse4589_print_and_log("[LIST:SUCCESS]\n");
       int cnt = 1;
@@ -60,7 +43,8 @@ void client::refresh(char *buf){
   strcat(buf," ");
   strcat(buf,host_info.ip_address);
   if(send(host_info.listener,buf,strlen(buf),0)<0){
-    displayError("REFRESH");
+    cse4589_print_and_log("[%s:ERROR]\n","REFRESH");
+    cse4589_print_and_log("[%s:END]\n","REFRESH");
   }
   cse4589_print_and_log("[REFRESH:SUCCESS]\n");
   cse4589_print_and_log("[REFRESH:END]\n");
@@ -147,10 +131,14 @@ client::client(char *port){
       cse4589_print_and_log("[AUTHOR:END]\n");
     }
     else if (strcmp(buf,"PORT") == 0){
-      displayPort();
+      cse4589_print_and_log("[PORT:SUCCESS]\n");
+      cse4589_print_and_log("PORT:%s\n",host_info.port_number);
+      cse4589_print_and_log("[PORT:END]\n");
     }
     else if (strcmp(buf,"IP") == 0){
-      displayIP();
+      cse4589_print_and_log("[IP:SUCCESS]\n");
+      cse4589_print_and_log("IP:%s\n",host_info.ip_address);
+      cse4589_print_and_log("[IP:END]\n");
     }
     else if (strcmp(buf,"LIST") == 0){
       List_clients();
@@ -164,13 +152,15 @@ client::client(char *port){
 
       bool valid_port = true;
       if(server_port == NULL){
-        displayError("LOGIN");
+        cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+        cse4589_print_and_log("[%s:END]\n","LOGIN");
         continue;
       }
       idx = 0;   
       while(idx != strlen(server_port)){
         if(server_port[idx] < '0' || server_port[idx] > '9'){
-          displayError("LOGIN");
+          cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+          cse4589_print_and_log("[%s:END]\n","LOGIN");
           valid_port = false;
           break;
         }        
@@ -179,13 +169,15 @@ client::client(char *port){
       if(!valid_port) continue;
       int port = atoi(server_port);
       if(port < 0 || port > 65535){
-        displayError("LOGIN");
+        cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+        cse4589_print_and_log("[%s:END]\n","LOGIN");
         continue;
       }
 
       /* Invalid ip address */
       if (!isValidSocket(server_ip,port)){
-        displayError("LOGIN");
+        cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+        cse4589_print_and_log("[%s:END]\n","LOGIN");
         continue;
       }
       else{
@@ -194,13 +186,15 @@ client::client(char *port){
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
         if (getaddrinfo(server_ip, server_port, &hints, &result) != 0) {
-          displayError("LOGIN");
+        cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+        cse4589_print_and_log("[%s:END]\n","LOGIN");
           continue;
         }
         else{
           /* Get socket fd */
           if ((host_info.listener = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-            displayError("LOGIN");
+          cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+          cse4589_print_and_log("[%s:END]\n","LOGIN");
             continue;
           }
 
@@ -211,7 +205,8 @@ client::client(char *port){
           dest_addr.sin_port = htons(port);
           dest_addr.sin_addr.s_addr = inet_addr(server_ip);
           if ((connect(host_info.listener, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr))) < 0){
-            displayError("LOGIN");
+            cse4589_print_and_log("[%s:ERROR]\n","LOGIN");
+            cse4589_print_and_log("[%s:END]\n","LOGIN");
             continue;
           }
            
@@ -244,10 +239,14 @@ client::client(char *port){
                 cse4589_print_and_log("[AUTHOR:END]\n");
               }
               else if (strcmp(buf,"PORT") == 0){
-                displayPort();
+                cse4589_print_and_log("[PORT:SUCCESS]\n");
+                cse4589_print_and_log("PORT:%s\n",host_info.port_number);
+                cse4589_print_and_log("[PORT:END]\n");
               }
               else if (strcmp(buf,"IP") == 0){
-                displayIP();
+                cse4589_print_and_log("[IP:SUCCESS]\n");
+                cse4589_print_and_log("IP:%s\n",host_info.ip_address);
+                cse4589_print_and_log("[IP:END]\n");
               }
               else if (strcmp(buf,"LIST") == 0){
                   List_clients();
@@ -259,7 +258,8 @@ client::client(char *port){
                 
                 bool send_error = send_message(buf);
                 if(send_error){
-                  displayError("SEND");
+                  cse4589_print_and_log("[%s:ERROR]\n","SEND");
+                  cse4589_print_and_log("[%s:END]\n","SEND");
                   continue;
                 }
                 cse4589_print_and_log("[SEND:SUCCESS]\n");
@@ -267,7 +267,8 @@ client::client(char *port){
               }
               else if(strncmp(buf,"BROADCAST",9) == 0){
                 if(send(host_info.listener,buf,strlen(buf),0)<0){
-                  displayError("BROADCAST");
+                  cse4589_print_and_log("[%s:ERROR]\n","BROADCAST");
+                  cse4589_print_and_log("[%s:END]\n","BROADCAST");
                 }
                 cse4589_print_and_log("[BROADCAST:SUCCESS]\n");
                 cse4589_print_and_log("[BROADCAST:END]\n");
@@ -302,11 +303,13 @@ client::client(char *port){
                 }
 
                 if(!isval || isblocked){
-                  displayError("BLOCK");
+                  cse4589_print_and_log("[%s:ERROR]\n","BLOCK");
+                  cse4589_print_and_log("[%s:END]\n","BLOCK");
                   continue;
                 }
                 if(send(host_info.listener,buf,strlen(buf),0)<0){
-                  displayError("BLOCK");
+                  cse4589_print_and_log("[%s:ERROR]\n","BLOCK");
+                  cse4589_print_and_log("[%s:END]\n","BLOCK");                  
                   continue;
                 }
                 else{
@@ -334,7 +337,9 @@ client::client(char *port){
                   iter_block++;
                 }
                 if(!valid || send(host_info.listener,buf,strlen(buf),0)<0){
-                  displayError("UNBLOCK");
+                  
+                  cse4589_print_and_log("[%s:ERROR]\n","UNBLOCK");
+                  cse4589_print_and_log("[%s:END]\n","UNBLOCK");
                   continue;
                 }
                 cse4589_print_and_log("[UNBLOCK:SUCCESS]\n");
