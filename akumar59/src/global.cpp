@@ -11,11 +11,7 @@ void global::print_error(const char* command_str){
   cse4589_print_and_log("[%s:ERROR]\n",command_str);
   cse4589_print_and_log("[%s:END]\n",command_str);
 }
-void global::print_author(){
-  cse4589_print_and_log("[AUTHOR:SUCCESS]\n");
-  cse4589_print_and_log("I, akumar59, have read and understood the course academic integrity policy.\n");
-  cse4589_print_and_log("[AUTHOR:END]\n");
-}
+
 void global::print_ip(){
   cse4589_print_and_log("[IP:SUCCESS]\n");
   cse4589_print_and_log("IP:%s\n",host_info.ip_address);
