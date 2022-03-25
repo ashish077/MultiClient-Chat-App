@@ -9,13 +9,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
-#include <stdlib.h>
 #include <netdb.h>
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <list>
 #include <algorithm>
+
 
 #define STDIN 0
 using namespace std;
@@ -45,10 +45,7 @@ void server::List_clients()
                                  
   
               }		 
-         /*   for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
-               if (strcmp(iter->status,"logged-in") == 0)
-                  cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++x,iter->hostname,iter->ip_addr,iter->port_num);
-            } */
+        
 
             cse4589_print_and_log("[LIST:END]\n");
          
@@ -63,7 +60,6 @@ void server::List_clients()
             list<socket_info>::iterator iter = host_info.clients.begin();
             while(++iter!=host_info.clients.end())
               {
-        //    for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter)
               cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n",++x,iter->hostname,iter->num_msg_sent,iter->num_msg_rcv,iter->status);
        cse4589_print_and_log("[STATISTICS:END]\n");
               }
@@ -79,7 +75,6 @@ void server::List_clients()
             list<socket_info>::iterator iter= host_info.clients.begin();
             while(++iter!=host_info.clients.end())
             {
-          //  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
               if(strcmp(iter->ip_addr,arg[1]) == 0){
                 int x = 0;
                 iter->blocked_list.sort(compare_blocks);
@@ -106,7 +101,6 @@ void server::List_clients()
             strcat(clientListMsg,"LOGIN ");
             list<socket_info>::iterator iter=host_info.clients.begin();
             while(++iter!= host_info.clients.end()){
-          //  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
               if(strcmp(iter->status,"logged-in") == 0){
                 strcat(clientListMsg,iter->hostname);
                 strcat(clientListMsg," ");
@@ -123,7 +117,6 @@ void server::List_clients()
              iter=host_info.clients.begin();
 	           while(++iter!=host_info.clients.end())
               {
-           // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
               if(strcmp(iter->ip_addr,client_ip) == 0){
                 while(!iter->buffer.empty()){
                   buffer_infm buffInfo = iter->buffer.front();
@@ -149,7 +142,7 @@ void server::List_clients()
             }
 
             if(send(head_socket,clientListMsg,strlen(clientListMsg),0)<0){
-              cerr<<"send"<<endl;
+              cout<<"send\n";
             }
   }
 
@@ -161,7 +154,6 @@ void server::List_clients()
         arg[1] = strtok(NULL," ");
         list<socket_info>::iterator iter = host_info.clients.begin();
         while(++iter!=host_info.clients.end()){
-       // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
             if(iter->fd == sock_index){
                 for(list<block>::iterator inter_unblock = iter->blocked_list.begin();inter_unblock != iter->blocked_list.end();++inter_unblock){
                     if(strcmp(arg[1],inter_unblock->ip) == 0)
@@ -178,7 +170,6 @@ void server::List_clients()
 
               list<socket_info>::iterator iter = host_info.clients.begin();
               while(++iter!=host_info.clients.end()){
-             // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(iter->fd == sock_index){
                   block b;
                   strcpy(b.ip,arg[1]);
@@ -200,7 +191,6 @@ void server::List_clients()
               memset(&from_client_ip,0,sizeof(from_client_ip));
               list<socket_info>::iterator iter = host_info.clients.begin();
               while(++iter!=host_info.clients.end()){
-             // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(iter->fd == sock_index){
                   strcpy(from_client_ip,iter->ip_addr);
                   iter->num_msg_sent++;
@@ -223,7 +213,6 @@ void server::List_clients()
               iter = host_info.clients.begin();
               while(++iter!=host_info.clients.end())
                   {
-            //  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(iter->fd != sock_index && strcmp(iter->status,"logged-in") == 0){
                   if(send(iter->fd,incom_msg,strlen(incom_msg),0)<0){
                     print_error("BROADCAST");
@@ -241,39 +230,14 @@ void server::List_clients()
               }
 
   }
-  //
-  void server::refresh()
-  {     // refresh to ground state
-      char clientListMsg[4096];
-              memset(&clientListMsg,0,sizeof(clientListMsg));
-              char *client_ip = strtok(NULL," ");
-              strcat(clientListMsg,"REFRESH ");
-               list<socket_info>::iterator iter = host_info.clients.begin();
-               while(++iter!=host_info.clients.end())
-                      {
-             // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
-                if(strcmp(iter->status,"logged-in") == 0){
-                  strcat(clientListMsg,iter->hostname);
-                  strcat(clientListMsg," ");
-                  strcat(clientListMsg,iter->ip_addr);
-                  strcat(clientListMsg," ");
-                  char pn[8];
-                  memset(&pn,0,sizeof(pn));
-                  snprintf(pn, sizeof(pn), "%d", iter->port_num);
-                  strcat(clientListMsg,pn);
-                  strcat(clientListMsg," ");
-                }
-            }
-
-  }
-
+  
+ 
   void server::send_message(int sock_index)
   {
       char from_client_ip[32];
               memset(&from_client_ip,0,sizeof(from_client_ip));
               list<socket_info>::iterator iter = host_info.clients.begin();
                while(++iter!=host_info.clients.end()){
-            //  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(iter->fd == sock_index){
                   strcpy(from_client_ip,iter->ip_addr);
                   iter->num_msg_sent++;
@@ -298,7 +262,6 @@ void server::List_clients()
               bool log = true;
               iter= host_info.clients.begin();
               while(++iter!=host_info.clients.end()){  
-             // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                 if(strcmp(iter->ip_addr,arg[1]) == 0){
                   if(strcmp(iter->status,"logged-out") == 0){
                     log = false;
@@ -318,10 +281,9 @@ void server::List_clients()
                 cse4589_print_and_log("[%s:END]\n", "RELAYED");
                 iter= host_info.clients.begin();
                 while(++iter!=host_info.clients.end()){
-               // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                   if(strcmp(iter->ip_addr,arg[1]) == 0){
                     if(send(iter->fd,incom_msg,strlen(incom_msg),0)<0){
-                      cerr<<"failed to send message"<<endl;
+                      cout<<"failed to send message\n";
                     }
                     iter->num_msg_rcv++;
                     break;
@@ -340,7 +302,6 @@ void server::List_clients()
                 strcpy(buffi.fr,from_client_ip);
                 iter= host_info.clients.begin();
                 while(++iter!=host_info.clients.end()){
-               // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
                   if(strcmp(iter->ip_addr,arg[1]) == 0){
                     iter->buffer.push(buffi);
                     iter->num_msg_rcv++;
@@ -363,25 +324,24 @@ server::server(char* port){
   char hostname[1024];
    
   if (gethostname(hostname,1024) < 0){
-    cerr<<"failed to gethostname"<<endl;
+    cout<<"failed to gethostname\n";
     exit(1);
   }
   if ((hst=gethostbyname(hostname)) == NULL){
-    cerr<<"not a known hostname"<<endl;
+    cout<<"not a known hostname\n";
     exit(1);
   }
 
   struct in_addr **addr_list = (struct in_addr **)hst->h_addr_list;
   int ix=0; 
   while(addr_list[ix] !=NULL){
-  //for(int i = 0;addr_list[i] != NULL;++i){
     strcpy(host_info.ip_address,inet_ntoa(*addr_list[ix]));
     ix++;
   }
 
   // creating a socket
   if ((host_info.listener = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-    cerr<<"socket\n";
+    cout<<"socket\n";
     exit(1);
   }
 
@@ -392,13 +352,13 @@ server::server(char* port){
   server_addr.sin_port = htons(atoi(port)); 
   server_addr.sin_addr.s_addr = INADDR_ANY;
   if (bind(host_info.listener, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-    cerr<<"binding failed";
+    cout<<"binding failed";
     exit(1);
   }
 
   //listening for clients
   if (listen(host_info.listener, 8) < 0) {
-    cerr<<"listen";
+    cout<<"listen";
     exit(1);
   }
 
@@ -423,7 +383,7 @@ server::server(char* port){
     int selret;
     selret = select(caddr_len+1, &watch_list, NULL, NULL, NULL);
     if (selret < 0) {
-      cerr<<"error";
+      cout<<"error";
       exit(1);
     }
     for(int sock_index = 0; sock_index <= caddr_len; sock_index++) {
@@ -476,7 +436,7 @@ server::server(char* port){
           // NEW CONNECTIONS
           addrlen = sizeof(client_addr);
           if ((head_socket = accept(host_info.listener, (struct sockaddr*)&client_addr, (socklen_t*)&addrlen)) == -1) {
-            cerr<<"accept";
+            cout<<"accept";
           } 
           else {
             FD_SET(head_socket, &master_list);  
@@ -507,12 +467,12 @@ server::server(char* port){
               struct sockaddr_in saddr;
               struct hostent *hoste;
               if(!inet_aton(client_ip,&saddr.sin_addr)){
-                cerr<<"inet_aton"<<endl;
+                cout<<"inet_aton\n";
                 exit(1);
               }
             
               if((hoste = gethostbyaddr((const void *)&saddr.sin_addr,sizeof(client_ip),AF_INET)) == NULL){
-                cerr<<"gethostbyaddr"<<endl;
+                cout<<"gethostbyaddr\n";
                 exit(1);
               }
               char *n = hoste->h_name;
@@ -526,7 +486,7 @@ server::server(char* port){
               char client_port[8];
               memset(&client_port,0,sizeof(client_port));
               if(recv(head_socket,client_port,sizeof(client_port),0) <= 0){
-                cerr<<"port"<<endl;
+                cout<<"port\n";
               }
               sock.port_num = atoi(client_port);
 
@@ -553,7 +513,7 @@ server::server(char* port){
               }
             } 
             else {
-              cerr<<"recv";
+              cout<<"recv";
             }
             close(sock_index); 
             //REMOVE FROM THE MASTER_LIST SET
@@ -593,31 +553,14 @@ server::server(char* port){
                   strcat(clientListMsg," ");
                 }
             }  
-            // refresh();
+            
              }
              else if(strcmp(arg_zero,"BROADCAST") == 0){
                send_broadcast(sock_index); 
              }
              else if(strcmp(arg_zero,"BLOCK") == 0){
-               char *arg[2];
-              arg[1] = strtok(NULL," ");
-
-              list<socket_info>::iterator iter = host_info.clients.begin();
-              while(++iter!=host_info.clients.end()){
-             // for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
-                if(iter->fd == sock_index){
-                  block b;
-                  strcpy(b.ip,arg[1]);
-                  for(list<socket_info>::iterator iter_blockinfo = host_info.clients.begin();iter_blockinfo != host_info.clients.end();++iter_blockinfo){
-                    if(strcmp(iter_blockinfo->ip_addr,arg[1]) == 0){
-                      b.listen_port_num = iter_blockinfo->port_num;
-                      strcpy(b.host,iter_blockinfo->hostname);
-                    }
-                }
-                  iter->blocked_list.push_back(b);
-              }
-        }
-          //   block_client(sock_index);
+       
+               block_client(sock_index);
              }
              else if(strcmp(arg_zero,"UNBLOCK") == 0){
 
@@ -630,10 +573,4 @@ server::server(char* port){
   }
 } 
 
-bool server::isvalid(char *server_ip){
-  for(list<socket_info>::iterator iter = host_info.clients.begin();iter != host_info.clients.end();++iter){
-    if(strcmp(server_ip,iter->ip_addr) == 0)
-     { return true;}
-  }
-  return false;
-}
+
