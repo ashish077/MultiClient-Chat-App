@@ -2,10 +2,10 @@
 #define GLOBAL_H_
 #define HOSTNAME_LEN 128
 #define PATH_LEN 256
-#include "info.h"
+#include "infm.h"
 class global{
 protected:
-  info host_info;
+  infm host_info;
 public:
   global();
 

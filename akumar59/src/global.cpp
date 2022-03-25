@@ -1,5 +1,4 @@
 #include "../include/logger.h"
-//#include "../include/common.h"
 #include "../include/global.h"
 #include <iostream>
 #include <string.h>
@@ -14,7 +13,7 @@ void global::print_error(const char* command_str){
 }
 void global::print_author(){
   cse4589_print_and_log("[AUTHOR:SUCCESS]\n");
-  cse4589_print_and_log("I, haoweizh, have read and understood the course academic integrity policy.\n");
+  cse4589_print_and_log("I, akumar59, have read and understood the course academic integrity policy.\n");
   cse4589_print_and_log("[AUTHOR:END]\n");
 }
 void global::print_ip(){

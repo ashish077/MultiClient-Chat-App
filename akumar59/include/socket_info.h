@@ -4,7 +4,7 @@
 #include <string.h>
 #include <queue>
 #include "block.h"
-#include "buffer_info.h"
+#include "buffer_infm.h"
 
 struct socket_info{
   socket_info(){
@@ -26,7 +26,7 @@ struct socket_info{
   int num_msg_rcv;
   char status[16];
   std::list<block> blocked_list;
-  std::queue<buffer_info> buffer;
+  std::queue<buffer_infm> buffer;
 };
 
 #endif

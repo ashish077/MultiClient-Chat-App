@@ -1,7 +1,7 @@
 #include "../include/server.h"
 #include "../include/logger.h"
 #include "../include/block.h"
-#include "../global.h"
+#include "../include/global.h"
 #include "../include/buffer_infm.h"
 #include <string.h>
 #include <sys/types.h>
@@ -372,10 +372,11 @@ server::server(char* port){
   }
 
   struct in_addr **addr_list = (struct in_addr **)hst->h_addr_list;
-  int ix
-  while(++ix !=NULL){
+  int ix=0; 
+  while(addr_list[ix] !=NULL){
   //for(int i = 0;addr_list[i] != NULL;++i){
-    strcpy(host_info.ip_address,inet_ntoa(*addr_list[i]));
+    strcpy(host_info.ip_address,inet_ntoa(*addr_list[ix]));
+    ix++;
   }
 
   // creating a socket
