@@ -37,11 +37,12 @@ void server::List_clients()
             int x = 0;
             host_info.clients.sort(compare_clients);
             list<socket_info>::iterator iter = host_info.clients.begin();
-            while(++iter!=host_info.clients.end())
+            while(iter!=host_info.clients.end())
               {
                if (strcmp(iter->status,"logged-in") == 0)
                   cse4589_print_and_log("%-5d%-35s%-20s%-8d\n",++x,iter->hostname,iter->ip_addr,iter->port_num);
-                   
+
+                iter++; 
                                  
   
               }		 
@@ -58,11 +59,12 @@ void server::List_clients()
        int x = 0;
             host_info.clients.sort(compare_clients);
             list<socket_info>::iterator iter = host_info.clients.begin();
-            while(++iter!=host_info.clients.end())
+            while(iter!=host_info.clients.end())
               {
               cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n",++x,iter->hostname,iter->num_msg_sent,iter->num_msg_rcv,iter->status);
-       cse4589_print_and_log("[STATISTICS:END]\n");
+              iter++;
               }
+        cse4589_print_and_log("[STATISTICS:END]\n");
   }
 
 //LIST OF BLOCKED CLIENTS
@@ -73,7 +75,7 @@ void server::List_clients()
             arg[0] = strtok(buf," ");
             arg[1] = strtok(NULL," ");
             list<socket_info>::iterator iter= host_info.clients.begin();
-            while(++iter!=host_info.clients.end())
+            while(iter!=host_info.clients.end())
             {
               if(strcmp(iter->ip_addr,arg[1]) == 0){
                 int x = 0;
@@ -86,6 +88,7 @@ void server::List_clients()
                 cse4589_print_and_log("[BLOCKED:END]\n");
                 bool flag = true;
             }
+            iter++;
         }
   }
 
@@ -100,7 +103,7 @@ void server::List_clients()
             memset(&clientListMsg,0,sizeof(clientListMsg));
             strcat(clientListMsg,"LOGIN ");
             list<socket_info>::iterator iter=host_info.clients.begin();
-            while(++iter!= host_info.clients.end()){
+            while(iter!= host_info.clients.end()){
               if(strcmp(iter->status,"logged-in") == 0){
                 strcat(clientListMsg,iter->hostname);
                 strcat(clientListMsg," ");
@@ -112,10 +115,11 @@ void server::List_clients()
                 strcat(clientListMsg,at);
                 strcat(clientListMsg," ");
               }
+             iter++; 
             }
 
              iter=host_info.clients.begin();
-	           while(++iter!=host_info.clients.end())
+	           while(iter!=host_info.clients.end())
               {
               if(strcmp(iter->ip_addr,client_ip) == 0){
                 while(!iter->buffer.empty()){
@@ -139,7 +143,9 @@ void server::List_clients()
                   cse4589_print_and_log("[%s:END]\n", "RELAYED");
                 }
               }
+               iter++;
             }
+           
 
             if(send(head_socket,clientListMsg,strlen(clientListMsg),0)<0){
               cout<<"send\n";
@@ -153,13 +159,14 @@ void server::List_clients()
         char *arg[2]; 
         arg[1] = strtok(NULL," ");
         list<socket_info>::iterator iter = host_info.clients.begin();
-        while(++iter!=host_info.clients.end()){
+        while(iter!=host_info.clients.end()){
             if(iter->fd == sock_index){
                 for(list<block>::iterator inter_unblock = iter->blocked_list.begin();inter_unblock != iter->blocked_list.end();++inter_unblock){
                     if(strcmp(arg[1],inter_unblock->ip) == 0)
                       iter->blocked_list.erase(inter_unblock);
                  }
             }
+          iter++;
         }
   }
 
@@ -169,7 +176,7 @@ void server::List_clients()
               arg[1] = strtok(NULL," ");
 
               list<socket_info>::iterator iter = host_info.clients.begin();
-              while(++iter!=host_info.clients.end()){
+              while(iter!=host_info.clients.end()){
                 if(iter->fd == sock_index){
                   block b;
                   strcpy(b.ip,arg[1]);
@@ -181,6 +188,7 @@ void server::List_clients()
                 }
                   iter->blocked_list.push_back(b);
               }
+              iter++;
         }
   }
 
@@ -190,11 +198,12 @@ void server::List_clients()
               char from_client_ip[32];
               memset(&from_client_ip,0,sizeof(from_client_ip));
               list<socket_info>::iterator iter = host_info.clients.begin();
-              while(++iter!=host_info.clients.end()){
+              while(iter!=host_info.clients.end()){
                 if(iter->fd == sock_index){
                   strcpy(from_client_ip,iter->ip_addr);
                   iter->num_msg_sent++;
                 }
+                iter++;
               }
 
               char *arg[2];
@@ -211,13 +220,14 @@ void server::List_clients()
               cse4589_print_and_log("msg from:%s, to:255.255.255.255\n[msg]:%s\n",from_client_ip,arg[1]);
               cse4589_print_and_log("[%s:END]\n", "RELAYED");
               iter = host_info.clients.begin();
-              while(++iter!=host_info.clients.end())
+              while(iter!=host_info.clients.end())
                   {
                 if(iter->fd != sock_index && strcmp(iter->status,"logged-in") == 0){
                   if(send(iter->fd,incom_msg,strlen(incom_msg),0)<0){
                     print_error("BROADCAST");
                   }
                   iter->num_msg_rcv++;
+                  iter++;
                 }
                 if(iter->fd != sock_index && strcmp(iter->status,"logged-out") == 0){
                   buffer_infm buffInfo;
@@ -237,11 +247,12 @@ void server::List_clients()
       char from_client_ip[32];
               memset(&from_client_ip,0,sizeof(from_client_ip));
               list<socket_info>::iterator iter = host_info.clients.begin();
-               while(++iter!=host_info.clients.end()){
+               while(iter!=host_info.clients.end()){
                 if(iter->fd == sock_index){
                   strcpy(from_client_ip,iter->ip_addr);
                   iter->num_msg_sent++;
                 }
+                iter++;
               }
               //arg[1]= message destination
               //arg[2]= actual message content 
@@ -261,7 +272,7 @@ void server::List_clients()
               bool blocked = false;
               bool log = true;
               iter= host_info.clients.begin();
-              while(++iter!=host_info.clients.end()){  
+              while(iter!=host_info.clients.end()){  
                 if(strcmp(iter->ip_addr,arg[1]) == 0){
                   if(strcmp(iter->status,"logged-out") == 0){
                     log = false;
@@ -271,6 +282,7 @@ void server::List_clients()
                       blocked = true;
                   }
                 }
+                iter++;
               }
               
 
@@ -280,7 +292,7 @@ void server::List_clients()
                 cse4589_print_and_log("msg from:%s, to:%s\n[msg]:%s\n",from_client_ip,arg[1],arg[2]);
                 cse4589_print_and_log("[%s:END]\n", "RELAYED");
                 iter= host_info.clients.begin();
-                while(++iter!=host_info.clients.end()){
+                while(iter!=host_info.clients.end()){
                   if(strcmp(iter->ip_addr,arg[1]) == 0){
                     if(send(iter->fd,incom_msg,strlen(incom_msg),0)<0){
                       cout<<"failed to send message\n";
@@ -288,6 +300,7 @@ void server::List_clients()
                     iter->num_msg_rcv++;
                     break;
                   }
+                  iter++;
                 }
                 memset(&msg,0,sizeof(msg));
               }
@@ -301,11 +314,12 @@ void server::List_clients()
                 strcpy(buffi.mesg,arg[2]);
                 strcpy(buffi.fr,from_client_ip);
                 iter= host_info.clients.begin();
-                while(++iter!=host_info.clients.end()){
+                while(iter!=host_info.clients.end()){
                   if(strcmp(iter->ip_addr,arg[1]) == 0){
                     iter->buffer.push(buffi);
                     iter->num_msg_rcv++;
                   }
+                  iter++;
                 }
               }
 
@@ -572,5 +586,3 @@ server::server(char* port){
     }
   }
 } 
-
-
